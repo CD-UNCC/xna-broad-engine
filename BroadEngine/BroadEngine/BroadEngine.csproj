@@ -96,6 +96,7 @@
     <Compile Include="Core\ActivityManager.cs" />
     <Compile Include="Core\Game.cs" />
     <Compile Include="Core\Screen.cs" />
+    <Compile Include="GameObjects\GameObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

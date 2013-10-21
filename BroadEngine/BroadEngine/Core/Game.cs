@@ -48,7 +48,6 @@ namespace BroadEngine.Core
         protected override void LoadContent()
         {
             Screen.Load();
-            ActivityManager.LoadNextActivity();
         }
 
         /// <summary>
@@ -67,6 +66,7 @@ namespace BroadEngine.Core
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            ActivityManager.Update(gameTime);
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
@@ -86,6 +86,7 @@ namespace BroadEngine.Core
 
             Screen.BeginDraw();
 
+            ActivityManager.Draw(gameTime);
 
             Screen.EndDraw();
 
