@@ -13,27 +13,19 @@ namespace BroadEngine.Core
 {
     public class Game : Microsoft.Xna.Framework.Game
     {
-        #region Fields
-
-        GraphicsDeviceManager _graphics;
-        Activity _curActivity;
-
-        #endregion
+        internal static Game CurrentGame;
 
         public Game()
         {
-            _graphics = new GraphicsDeviceManager(this);
+            CurrentGame = this;
+            Screen.Graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
         }
 
-        public void SetActivity<T>() where T : Activity, new()
-        {
-            _curActivity = new T();
-        }
 
         public void Run<T>() where T : Activity, new()
         {
-            SetActivity<T>();
+            ActivityManager.QueueActivity<T>();
             this.Run();
         }
 
@@ -46,7 +38,6 @@ namespace BroadEngine.Core
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-
             base.Initialize();
         }
 
@@ -56,8 +47,8 @@ namespace BroadEngine.Core
         /// </summary>
         protected override void LoadContent()
         {
-            Screen.GraphicsDevice = GraphicsDevice;
-            _curActivity.Invoke();
+            Screen.Load();
+            ActivityManager.LoadNextActivity();
         }
 
         /// <summary>

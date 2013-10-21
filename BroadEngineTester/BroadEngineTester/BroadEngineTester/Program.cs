@@ -1,5 +1,6 @@
 using System;
 using BroadEngine.Core;
+using BroadEngineTester.Activities;
 
 namespace BroadEngineTester
 {
@@ -13,7 +14,7 @@ namespace BroadEngineTester
         {
             using (Game game = new Game())
             {
-                game.Run<Activity>();
+                game.Run<ColorScreenActivity>();
             }
         }
     }

@@ -8,14 +8,9 @@ namespace BroadEngine.Core
 {
     public class Activity
     {
-        public Activity()
-        {
-            
-        }
-
-        public void Invoke()
-        {
-            Screen.CurrentScreenClearColor = Color.Aquamarine;
-        }
+        public virtual void Load() { }
+        public virtual void Update() { }
+        public virtual void Draw() { }
+        public virtual void Unload() { }
     }
 }
