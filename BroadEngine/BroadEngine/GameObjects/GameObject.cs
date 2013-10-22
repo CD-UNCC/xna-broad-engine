@@ -18,36 +18,66 @@ namespace BroadEngine.GameObjects
 
         #region Public Methods
 
-        public IEnumerable<GameObject> GetChildrenOfType<T>() where T : GameObject { return _children.OfType<T>(); }
+        public IEnumerable<T> GetChildrenOfType<T>() { return _children.OfType<T>(); }
 
         #endregion
 
         #region Protected Methods
 
+        protected virtual void Attach(IAttaches child)
+        {
+            (child as GameObject).Parent = this;
+            child.OnAttach(this as IAttachable);
+        }
 
+        protected void UpdateChildren(GameTime gameTime, bool isPaused)
+        {
+            var toUpdate = GetChildrenOfType<IUpdateable>();
+            foreach (IUpdateable child in toUpdate)
+                child.Update(gameTime, isPaused);
+        }
+
+        protected void DrawChildren(GameTime gameTime, bool isPaused)
+        {
+            var toDraw = GetChildrenOfType<IDrawable>();
+            foreach (IDrawable child in toDraw)
+                child.Draw(gameTime, isPaused);
+        }
 
         #endregion
     }
 
+    /// <summary>
+    /// An interface for game objects that attach to another object
+    /// </summary>
     public interface IAttaches
     {
         void OnAttach(IAttachable parent);
     }
 
+    /// <summary>
+    /// An interface for game objects that can have other objects attached to them
+    /// </summary>
     public interface IAttachable
     {
         void Attach(IAttaches child);
     }
 
+    /// <summary>
+    /// An interface for game objects that can be updated
+    /// </summary>
     public interface IUpdateable
     {
-        void Update(GameTime gameTime);
+        void Update(GameTime gameTime, bool isPaused);
     }
 
+    /// <summary>
+    /// An interface for game objects that can be drawn
+    /// </summary>
     public interface IDrawable
     {
         Vector2 Position { get; set; }
         Rectangle Bounds { get; set; }
-        void Draw(GameTime gameTime);
+        void Draw(GameTime gameTime, bool isPaused);
     }
 }
