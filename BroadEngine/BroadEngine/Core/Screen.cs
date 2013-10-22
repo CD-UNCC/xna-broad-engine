@@ -78,7 +78,7 @@ namespace BroadEngine.Core
         internal static void Load()
         {
             Width = 800;
-            Height = 800;
+            Height = 640;
             IsMouseVisible = true;
             DefaultScreenClearColor = Color.Black;
             _spriteBatch = new SpriteBatch(GraphicsDevice);

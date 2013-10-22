@@ -6,7 +6,7 @@ using System.Text;
 
 namespace BroadEngine.GameObjects.Modules
 {
-    public class Timer : GameObject, IAttaches, IUpdateable
+    public class Timer : GameObject, IAttaches, IUpdateable, IPercentable
     {
         #region Fields
 

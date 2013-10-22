@@ -98,6 +98,7 @@
     <Compile Include="Core\Screen.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="GameObjects\GameObject.cs" />
+    <Compile Include="GameObjects\Modules\IPercentable.cs" />
     <Compile Include="GameObjects\Modules\Timer.cs" />
     <Compile Include="GameObjects\Modules\Transition.cs" />
     <Compile Include="Helper.cs" />

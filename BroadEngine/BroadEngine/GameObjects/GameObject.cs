@@ -24,6 +24,21 @@ namespace BroadEngine.GameObjects
 
         #region Protected Methods
 
+        protected bool IsChildOf(GameObject toCheck)
+        {
+            GameObject parent = this.Parent;
+
+            while (parent != null)
+            {
+                if (toCheck.Equals(parent))
+                    return true;
+                else
+                    parent = parent.Parent;
+            }
+
+            return false;
+        }
+
         protected virtual void Attach(IAttaches child)
         {
             (child as GameObject).Parent = this;
