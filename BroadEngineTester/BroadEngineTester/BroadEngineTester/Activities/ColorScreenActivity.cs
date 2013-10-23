@@ -10,29 +10,27 @@ namespace BroadEngineTester.Activities
 {
     public class ColorScreenActivity : Activity
     {
-        ColorTransition cTrans;
+        ReversibleTransition<Color> cTrans;
+        int count = 0;
         public override void Load()
         {
-            cTrans = new ColorTransition(Color.CadetBlue, Color.IndianRed, 3);
+            cTrans = new ReversibleTransition<Color>(Color.BlanchedAlmond, Color.Coral, 1);
             cTrans.OnValueChanged = new Action<Color>(ChangeColor);
-            cTrans.OnFinish = new Action(TransitionFinished);
+            cTrans.Loops = true;
+            cTrans.OnLoopReverse = new Action(Reversed);
             cTrans.Running = true;
             _activityObjects.Add(cTrans);
+        }
+
+        public void Reversed()
+        {
+            if (++count >= 5)
+                cTrans.Loops = false;
         }
 
         public void ChangeColor(Color color)
         {
             Screen.ScreenClearColor = color;
-        }
-
-        public void TransitionFinished()
-        {
-            //_activityObjects.Remove(cTrans);
-            cTrans = new ColorTransition(Color.HotPink, Color.Honeydew, 5);
-            cTrans.OnValueChanged = new Action<Color>(ChangeColor);
-            cTrans.OnFinish = new Action(TransitionFinished);
-            cTrans.Running = true;
-            _activityObjects.Add(cTrans);
         }
     }
 }

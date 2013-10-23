@@ -12,6 +12,8 @@ namespace BroadEngine.Core
     public class Activity
     {
         protected List<GameObject> _activityObjects = new List<GameObject>();
+        protected Queue<GameObject> _toRemove = new Queue<GameObject>();
+        protected Queue<GameObject> _toAdd = new Queue<GameObject>();
 
         #region Public Methods
 
@@ -19,6 +21,11 @@ namespace BroadEngine.Core
         public virtual void Unload() { }
         public virtual void Update(GameTime gameTime, bool isPaused)
         {
+            while (_toRemove.Count > 0)
+                _activityObjects.Remove(_toRemove.Dequeue());
+            while (_toAdd.Count > 0)
+                _activityObjects.Add(_toAdd.Dequeue());
+
             var toUpdate = GetObjectsByType<IUpdateable>();
             foreach (IUpdateable child in toUpdate)
                 child.Update(gameTime, isPaused);
@@ -35,9 +42,26 @@ namespace BroadEngine.Core
             return _activityObjects.OfType<T>();
         }
 
+        public void AddObject(GameObject toAdd)
+        {
+            _toAdd.Enqueue(toAdd);
+        }
+
+        public void RemoveObject(GameObject toRemove)
+        {
+            _toRemove.Enqueue(toRemove);
+        }
+
         #endregion
 
         #region Protected Methods
+
+        protected void ReplaceObject<T>(ref T curObj, T newObj) where T : GameObject
+        {
+            RemoveObject(curObj);
+            curObj = newObj;
+            AddObject(curObj);
+        }
 
         #endregion
     }

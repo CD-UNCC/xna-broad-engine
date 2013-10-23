@@ -6,12 +6,21 @@ using System.Text;
 
 namespace BroadEngine.GameObjects.Modules
 {
-    public class Transition : GameObject, IAttaches, IUpdateable, IPercentable
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T">The type to be transitioned. Currently supports float and Color.</typeparam>
+    public class Transition<T> : GameObject, IAttaches, IUpdateable, IPercentable
     {
+        protected static readonly Func<T, T, float, T> _valueGetter;
+
         #region Fields
 
+        protected T _startValue;
+        protected T _endValue;
         protected float _curPercent;
         protected float _transitionSeconds;
+
         #endregion
 
         #region Protected Properties
@@ -22,26 +31,29 @@ namespace BroadEngine.GameObjects.Modules
 
         #region Public Properties
 
+        public Action<T> OnValueChanged;
         public Action OnFinish;
         public bool Running;
         public bool Finished { get { return !Running && _curPercent == 1; } }
         public float PercentCompleted { get { return _curPercent; } }
         public float PercentRemaining { get { return 1f - PercentCompleted; } }
+        public T CurrentValue { get { return _valueGetter(_startValue, _endValue, _curPercent); } }
 
         #endregion
 
         #region Constructors
 
-        public Transition(float duration)
-        {            
+        static Transition()
+        {
+            _valueGetter = (Func<T, T, float, T>)Delegate.CreateDelegate(typeof(Func<T, T, float, T>), typeof(TransitionValueMethods).GetMethod("GetValue", new Type[] { typeof(T), typeof(T), typeof(float) }));
+        }
+
+        public Transition(T start, T end, float duration)
+        {
+            _startValue = start;
+            _endValue = end;
             _transitionSeconds = duration;
             _curPercent = 0;
-            Running = false;
-        }
-        public Transition()
-        {
-            _curPercent = 0;
-            _transitionSeconds = 1;
             Running = false;
         }
 
@@ -49,7 +61,16 @@ namespace BroadEngine.GameObjects.Modules
 
         #region Protected Methods
 
-        protected virtual void ValueChanged() { }
+        protected virtual void IncrementPercent(float seconds)
+        {
+            _curPercent += StepPerSec * seconds;
+            _curPercent = Helper.ClampValueMax(_curPercent, 1);
+        }
+
+        protected virtual bool TransitionComplete()
+        {
+            return _curPercent == 1;
+        }
 
         #endregion
 
@@ -57,103 +78,103 @@ namespace BroadEngine.GameObjects.Modules
 
         public void OnAttach(IAttachable parent) { }
 
-        public void Reset(bool running)
+        public virtual void Reset(bool running)
         {
             _curPercent = 0;
             Running = running;
         }
         public void Reset() { Reset(Running); }
 
-        public void Update(GameTime gameTime, bool isPaused)
+        public virtual void Update(GameTime gameTime, bool isPaused)
         {
-            if (Running)
+            if (Running && !isPaused)
             {
-                _curPercent += StepPerSec * (float)gameTime.ElapsedGameTime.TotalSeconds;
-                _curPercent = Helper.ClampValueMax<float>(_curPercent, 1);
-                if (_curPercent == 1)
+                float seconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
+                IncrementPercent(seconds);
+                if (TransitionComplete() && seconds > 0)
                 {
                     Running = false;
                     if (OnFinish != null)
-                        OnFinish.Invoke();
+                        OnFinish();
                 }
-                ValueChanged();
+                if (OnValueChanged != null)
+                    OnValueChanged(CurrentValue);
             }
         }
 
         #endregion
     }
 
-    public class FloatTransition : Transition
+    public class ReversibleTransition<T> : Transition<T>
     {
-        #region Fields
-
-        float _startValue;
-        float _endValue;
-
-        #endregion
-
         #region Public Properties
 
-        public Action<float> OnValueChanged;
-        public float CurValue { get { return MathHelper.Lerp(_startValue, _endValue, _curPercent); } }
+        public bool Loops;
+        public bool Forward;
+        public Action OnLoopReverse;
 
         #endregion
 
         #region Constructors
 
-        public FloatTransition(float start, float end, float duration) : base(duration)
+        public ReversibleTransition(T start, T end, float duration) : base(start, end, duration) 
         {
-            _startValue = start;
-            _endValue = end;
+            Loops = false;
+            Forward = true;
         }
 
         #endregion
 
         #region Protected Methods
 
-        protected override void ValueChanged()
+        protected override void IncrementPercent(float seconds)
         {
-            if (OnValueChanged != null)
-                OnValueChanged.Invoke(CurValue);
+            if (Forward)
+                base.IncrementPercent(seconds);
+            else
+            {
+                _curPercent -= StepPerSec * seconds;
+                _curPercent = Helper.ClampValueMin(_curPercent, 0);
+            }
+        }
+
+        protected override bool TransitionComplete()
+        {
+            if (_curPercent == 0 || _curPercent == 1)
+            {
+                Reverse();
+                if (Loops)
+                {
+                    if (OnLoopReverse != null)
+                        OnLoopReverse();
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        public override void Reset(bool running)
+        {
+            base.Reset(running);
+            Forward = true;
+        }
+
+        public void Reverse()
+        {
+            Forward = !Forward;
         }
 
         #endregion
     }
 
-    public class ColorTransition : Transition
+    public class TransitionValueMethods
     {
-        #region Fields
-
-        Color _startValue;
-        Color _endValue;
-
-        #endregion
-
-        #region Public Properties
-
-        public Action<Color> OnValueChanged;
-        public Color CurValue { get { return Vector4.Lerp(_startValue.ToVector4(), _endValue.ToVector4(), _curPercent).ToColor(); } }
-
-        #endregion
-
-        #region Constructors
-
-        public ColorTransition(Color start, Color end, float duration) : base(duration)
-        {
-            _startValue = start;
-            _endValue = end;
-        }
-
-        #endregion
-
-        #region Protected Methods
-
-        protected override void ValueChanged()
-        {
-            if (OnValueChanged != null)
-                OnValueChanged.Invoke(CurValue);
-        }
-
-        #endregion
+        public static float GetValue(float start, float end, float percent) { return MathHelper.Lerp(start, end, percent); }
+        public static Color GetValue(Color start, Color end, float percent) { return Vector4.Lerp(start.ToVector4(), end.ToVector4(), percent).ToColor(); }
     }
 }
