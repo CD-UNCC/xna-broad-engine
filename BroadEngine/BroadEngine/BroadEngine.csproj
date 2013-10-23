@@ -95,6 +95,7 @@
     <Compile Include="Core\Activity.cs" />
     <Compile Include="Core\ActivityManager.cs" />
     <Compile Include="Core\Game.cs" />
+    <Compile Include="Core\Input.cs" />
     <Compile Include="Core\Screen.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="GameObjects\GameObject.cs" />

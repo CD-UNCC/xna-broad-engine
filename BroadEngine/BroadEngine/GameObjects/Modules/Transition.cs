@@ -172,7 +172,7 @@ namespace BroadEngine.GameObjects.Modules
         #endregion
     }
 
-    public class TransitionValueMethods
+    class TransitionValueMethods
     {
         public static float GetValue(float start, float end, float percent) { return MathHelper.Lerp(start, end, percent); }
         public static Color GetValue(Color start, Color end, float percent) { return Vector4.Lerp(start.ToVector4(), end.ToVector4(), percent).ToColor(); }

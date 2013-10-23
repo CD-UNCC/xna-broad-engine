@@ -12,7 +12,6 @@ namespace BroadEngine.GameObjects.Modules
 
         float _maxTime;
         float _curTime;
-        Action _onFinish;
 
         #endregion
 
@@ -22,20 +21,20 @@ namespace BroadEngine.GameObjects.Modules
         public float PercentRemaining { get { return 1f - PercentCompleted; } }
         public bool Running;
         public bool Finished { get { return !Running && _curTime <= 0; } }
+        public bool Countdown { get; private set; }
+        public Action OnFinish;
 
         #endregion
 
         #region Constructor
 
-        public Timer(float timeInSeconds, Action onFinish, bool running)
+        public Timer(float timeInSeconds, bool countsDown)
         {
             _maxTime = timeInSeconds;
             _curTime = _maxTime;
-            _onFinish = onFinish;
-            Running = running;
+            Running = false;
+            Countdown = countsDown;
         }
-        public Timer(float timeInSeconds, Action onFinish) : this(timeInSeconds, onFinish, true) { }
-        public Timer(float timeInSeconds) : this(timeInSeconds, null, true) { }
 
         #endregion
 
@@ -53,11 +52,6 @@ namespace BroadEngine.GameObjects.Modules
         }
         public void Reset() { Reset(Running); }
 
-        public void SetFinishAction(Action action)
-        {
-            _onFinish = action;
-        }
-
         public void Update(GameTime gameTime, bool isPaused)
         {
             if (Running && !isPaused)
@@ -67,8 +61,8 @@ namespace BroadEngine.GameObjects.Modules
                 if (_curTime == 0)
                 {
                     Running = false;
-                    if (_onFinish != null)
-                        _onFinish.Invoke();
+                    if (OnFinish != null)
+                        OnFinish();
                 }
             }
         }

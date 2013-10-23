@@ -20,12 +20,24 @@ namespace BroadEngineTester.Activities
             cTrans.OnLoopReverse = new Action(Reversed);
             cTrans.Running = true;
             _activityObjects.Add(cTrans);
+            TimeSpan d = new TimeSpan();
+            
         }
 
         public void Reversed()
         {
             if (++count >= 5)
+            {
+                count = 0;
                 cTrans.Loops = false;
+                AddDelayedAction(2, new Action(ResetLoop));
+            }
+        }
+
+        public void ResetLoop()
+        {
+            cTrans.Loops = true;
+            cTrans.Running = true;
         }
 
         public void ChangeColor(Color color)

@@ -11,9 +11,33 @@ namespace BroadEngine.Core
 {
     public class Activity
     {
+        protected class DelayedAction
+        {
+            float _delay;
+            Action _action;
+
+            public DelayedAction(float delay, Action action)
+            {
+                _delay = delay;
+                _action = action;
+            }
+            public bool Update(GameTime gameTime)
+            {
+                _delay -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                if (_delay <= 0)
+                {
+                    _action();
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        protected List<DelayedAction> _delayedActions = new List<DelayedAction>();
         protected List<GameObject> _activityObjects = new List<GameObject>();
         protected Queue<GameObject> _toRemove = new Queue<GameObject>();
         protected Queue<GameObject> _toAdd = new Queue<GameObject>();
+        protected float SecondsElapsed;
 
         #region Public Methods
 
@@ -25,6 +49,13 @@ namespace BroadEngine.Core
                 _activityObjects.Remove(_toRemove.Dequeue());
             while (_toAdd.Count > 0)
                 _activityObjects.Add(_toAdd.Dequeue());
+            if (!isPaused)
+                for (int i = 0; i < _delayedActions.Count; i++)
+                    if (_delayedActions[i].Update(gameTime))
+                    {
+                        _delayedActions.RemoveAt(i);
+                        i--;
+                    }
 
             var toUpdate = GetObjectsByType<IUpdateable>();
             foreach (IUpdateable child in toUpdate)
@@ -50,6 +81,11 @@ namespace BroadEngine.Core
         public void RemoveObject(GameObject toRemove)
         {
             _toRemove.Enqueue(toRemove);
+        }
+
+        public void AddDelayedAction(float delayInSeconds, Action action)
+        {
+            _delayedActions.Add(new DelayedAction(delayInSeconds, action));
         }
 
         #endregion
