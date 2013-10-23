@@ -57,9 +57,13 @@ namespace BroadEngine.Core
                         i--;
                     }
 
+            UpdateBeforeObjects(gameTime, isPaused);
+
             var toUpdate = GetObjectsByType<IUpdateable>();
             foreach (IUpdateable child in toUpdate)
                 child.Update(gameTime, isPaused);
+
+            UpdateAfterObjects(gameTime, isPaused);
         }
         public virtual void Draw(GameTime gameTime, bool isPaused) 
         {
@@ -98,6 +102,9 @@ namespace BroadEngine.Core
             curObj = newObj;
             AddObject(curObj);
         }
+
+        protected virtual void UpdateBeforeObjects(GameTime gameTime, bool isPaused) { }
+        protected virtual void UpdateAfterObjects(GameTime gameTime, bool isPaused) { }
 
         #endregion
     }

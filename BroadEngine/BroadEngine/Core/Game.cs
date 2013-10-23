@@ -47,7 +47,9 @@ namespace BroadEngine.Core
         /// </summary>
         protected override void LoadContent()
         {
+            ContentLoader.Load(Content);
             Screen.Load();
+            InputManager.Initialize();
         }
 
         /// <summary>
@@ -67,6 +69,7 @@ namespace BroadEngine.Core
         protected override void Update(GameTime gameTime)
         {
             ActivityManager.Update(gameTime);
+            InputManager.Update();
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();

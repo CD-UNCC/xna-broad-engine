@@ -24,6 +24,8 @@ namespace BroadEngine.Core
 
         public static Color ScreenClearColor;
 
+        public static SpriteFont Font;
+
         public static Color DefaultScreenClearColor
         {
             get { return _defaultScreenClearColor; }
@@ -71,6 +73,8 @@ namespace BroadEngine.Core
 
         public static void ClearScreen() { GraphicsDevice.Clear(ScreenClearColor);  }
 
+        public static void DrawString(string text, Vector2 position, Color color) { _spriteBatch.DrawString(Font, text, position, color); }
+
         #endregion
 
         #region Internal Methods
@@ -84,7 +88,7 @@ namespace BroadEngine.Core
             _spriteBatch = new SpriteBatch(GraphicsDevice);
         }
 
-        internal static void BeginDraw() { _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.Opaque, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise); }
+        internal static void BeginDraw() { _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend); }
         internal static void EndDraw() { _spriteBatch.End(); }
 
         #endregion
