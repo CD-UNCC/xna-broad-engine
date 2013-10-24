@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,15 @@ namespace BroadEngine
         public static Color ToColor(this Vector4 vector)
         {
             return new Color(vector.X, vector.Y, vector.Z, vector.W);
+        }
+
+        #endregion
+
+        #region Texture2D
+
+        public static Vector2 Center(this Texture2D tex)
+        {
+            return new Vector2(tex.Width / 2, tex.Height / 2);
         }
 
         #endregion

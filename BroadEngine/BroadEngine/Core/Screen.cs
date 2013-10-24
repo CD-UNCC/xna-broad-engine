@@ -25,6 +25,7 @@ namespace BroadEngine.Core
         public static Color ScreenClearColor;
 
         public static SpriteFont Font;
+        public static Texture2D Pixel { get; private set; }
 
         public static Color DefaultScreenClearColor
         {
@@ -74,6 +75,9 @@ namespace BroadEngine.Core
         public static void ClearScreen() { GraphicsDevice.Clear(ScreenClearColor);  }
 
         public static void DrawString(string text, Vector2 position, Color color) { _spriteBatch.DrawString(Font, text, position, color); }
+        public static void Draw(Texture2D texture, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float drawLayer) { _spriteBatch.Draw(texture, position, null, color, rotation, origin, scale, effects, drawLayer); }
+        public static void Draw(Texture2D texture, Vector2 position, Color color, float rotation, Vector2 origin, float scale) { Draw(texture, position, color, rotation, origin, scale, SpriteEffects.None, 0); }
+        public static void DrawRect(Rectangle rect, Color color) { _spriteBatch.Draw(Pixel, rect, color); }
 
         #endregion
 
@@ -86,6 +90,8 @@ namespace BroadEngine.Core
             IsMouseVisible = true;
             DefaultScreenClearColor = Color.Black;
             _spriteBatch = new SpriteBatch(GraphicsDevice);
+            Pixel = new Texture2D(GraphicsDevice, 1, 1);
+            Pixel.SetData<Color>(new Color[] { Color.White });
         }
 
         internal static void BeginDraw() { _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend); }

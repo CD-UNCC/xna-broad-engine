@@ -34,7 +34,7 @@ namespace BroadEngine.Core
             _contentTable = new Dictionary<string, object>();
 
             Screen.Font = _contentManager.Load<SpriteFont>("Fonts/TestFont");
-            _contentTable.Add("TestFont", Screen.Font);
+            _contentTable.Add("TestSprite", _contentManager.Load<Texture2D>("Sprites/testSprite"));
         }
 
         #endregion

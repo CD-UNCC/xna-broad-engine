@@ -7,36 +7,45 @@ using Microsoft.Xna.Framework;
 using BroadEngine.GameObjects.Modules;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
+using BroadEngine.GameObjects.Sprites;
 
 namespace BroadEngineTester.Activities
 {
     public class ColorScreenActivity : Activity
     {
         ReversibleTransition<Color> cTrans;
+        SimpleSprite sprite;
         int count = 0;
         public override void Load()
         {
-
+            sprite = new SimpleSprite(ContentLoader.Get<Texture2D>("TestSprite"));
+            AddObject(sprite);
             cTrans = new ReversibleTransition<Color>(Color.BlanchedAlmond, Color.Coral, 1);
             cTrans.OnValueChanged = new Action<Color>(ChangeColor);
             cTrans.Loops = true;
             cTrans.OnLoopReverse = new Action(Reversed);
             cTrans.Running = true;
-            _activityObjects.Add(cTrans);
+            AddObject(cTrans);
 
             InputManager.AddInput(new Action(Reset), MouseButtons.MouseLeft, InputModifier.Clicked);
-            InputManager.AddInput(new Action(Reset), Keys.Up, InputModifier.Held);
-            InputManager.AddInput(new Action(Left), Keys.Left);
-            InputManager.AddInput(new Action(Right), Keys.Right);
+            InputManager.AddInput(new Action(Left), Keys.Left, InputModifier.Held);
+            InputManager.AddInput(new Action(Right), Keys.Right, InputModifier.Held);
+            InputManager.AddInput(new Action(Down), Keys.Down, InputModifier.Held);
+            InputManager.AddInput(new Action(Up), Keys.Up, InputModifier.Held);
+            InputManager.AddInput(new Action(Q), Keys.Q, InputModifier.Held);
+            InputManager.AddInput(new Action(E), Keys.E, InputModifier.Held);
+            InputManager.AddInput(new Action(W), Keys.W, InputModifier.Held);
+            InputManager.AddInput(new Action(S), Keys.S, InputModifier.Held);
             InputManager.AddCombinedInput(new Action(Reset), Keys.Left, Keys.Right);
         }
 
         public override void Draw(GameTime gameTime, bool isPaused)
         {
-            string[] inputs = InputManager.GetUsedInputs();
+            Vector2[] corners = sprite.RotatedCorners;
             int i;
-            for (i = 0; i < inputs.Length; i++)
-                Screen.DrawString(inputs[i], new Vector2(20, 20 + 20 * i), Color.Black);
+            for (i = 0; i < corners.Length; i++)
+                Screen.DrawString(corners[i].ToString(), new Vector2(20, 20 + 20 * i), Color.Black);
+            Screen.DrawRect(sprite.Bounds, Color.DarkTurquoise * .5f);
             base.Draw(gameTime, isPaused);
         }
 
@@ -57,12 +66,42 @@ namespace BroadEngineTester.Activities
 
         public void Left()
         {
-            SetColor(Color.WhiteSmoke, Color.Black);
+            sprite.Position.X -= .3f;
         }
 
         public void Right()
         {
-            SetColor(Color.BlueViolet, Color.DarkRed);
+            sprite.Position.X += .3f;
+        }
+
+        public void Up()
+        {
+            sprite.Position.Y -= .3f;
+        }
+
+        public void Down()
+        {
+            sprite.Position.Y += .3f;
+        }
+
+        public void Q()
+        {
+            sprite.Rotation += .2f;
+        }
+
+        public void E()
+        {
+            sprite.Rotation -= .2f;
+        }
+
+        public void W()
+        {
+            sprite.Scale += .01f;
+        }
+
+        public void S()
+        {
+            sprite.Scale -= .01f;
         }
 
         public void SetColor(Color start, Color end)

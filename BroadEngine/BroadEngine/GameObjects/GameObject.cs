@@ -91,8 +91,6 @@ namespace BroadEngine.GameObjects
     /// </summary>
     public interface IDrawable
     {
-        Vector2 Position { get; set; }
-        Rectangle Bounds { get; set; }
         void Draw(GameTime gameTime, bool isPaused);
     }
 }
