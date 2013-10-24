@@ -18,7 +18,6 @@ namespace BroadEngine.GameObjects.Modules
 
         protected T _startValue;
         protected T _endValue;
-        protected float _curPercent;
         protected float _transitionSeconds;
 
         #endregion
@@ -34,10 +33,11 @@ namespace BroadEngine.GameObjects.Modules
         public Action<T> OnValueChanged;
         public Action OnFinish;
         public bool Running;
-        public bool Finished { get { return !Running && _curPercent == 1; } }
-        public float PercentCompleted { get { return _curPercent; } }
+        public bool Finished { get { return !Running && CurrentPercent == 1; } }
+        public float CurrentPercent { get; protected set; }
+        public float PercentCompleted { get { return CurrentPercent; } }
         public float PercentRemaining { get { return 1f - PercentCompleted; } }
-        public T CurrentValue { get { return _valueGetter(_startValue, _endValue, _curPercent); } }
+        public T CurrentValue { get { return _valueGetter(_startValue, _endValue, CurrentPercent); } }
 
         #endregion
 
@@ -53,7 +53,7 @@ namespace BroadEngine.GameObjects.Modules
             _startValue = start;
             _endValue = end;
             _transitionSeconds = duration;
-            _curPercent = 0;
+            CurrentPercent = 0;
             Running = false;
         }
 
@@ -63,13 +63,13 @@ namespace BroadEngine.GameObjects.Modules
 
         protected virtual void IncrementPercent(float seconds)
         {
-            _curPercent += StepPerSec * seconds;
-            _curPercent = Helper.ClampValueMax(_curPercent, 1);
+            CurrentPercent += StepPerSec * seconds;
+            CurrentPercent = Helper.ClampValueMax(CurrentPercent, 1);
         }
 
         protected virtual bool TransitionComplete()
         {
-            return _curPercent == 1;
+            return CurrentPercent == 1;
         }
 
         #endregion
@@ -80,7 +80,7 @@ namespace BroadEngine.GameObjects.Modules
 
         public virtual void Reset(bool running)
         {
-            _curPercent = 0;
+            CurrentPercent = 0;
             Running = running;
         }
         public void Reset() { Reset(Running); }
@@ -133,14 +133,14 @@ namespace BroadEngine.GameObjects.Modules
                 base.IncrementPercent(seconds);
             else
             {
-                _curPercent -= StepPerSec * seconds;
-                _curPercent = Helper.ClampValueMin(_curPercent, 0);
+                CurrentPercent -= StepPerSec * seconds;
+                CurrentPercent = Helper.ClampValueMin(CurrentPercent, 0);
             }
         }
 
         protected override bool TransitionComplete()
         {
-            if (_curPercent == 0 || _curPercent == 1)
+            if (CurrentPercent == 0 || CurrentPercent == 1)
             {
                 Reverse();
                 if (Loops)
@@ -160,8 +160,8 @@ namespace BroadEngine.GameObjects.Modules
 
         public override void Reset(bool running)
         {
-            base.Reset(running);
-            Forward = true;
+            CurrentPercent = Forward ? 0 : 1;
+            Running = running;
         }
 
         public void Reverse()
