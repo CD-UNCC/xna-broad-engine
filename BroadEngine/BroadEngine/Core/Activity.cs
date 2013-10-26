@@ -37,7 +37,6 @@ namespace BroadEngine.Core
         protected List<GameObject> _activityObjects = new List<GameObject>();
         protected Queue<GameObject> _toRemove = new Queue<GameObject>();
         protected Queue<GameObject> _toAdd = new Queue<GameObject>();
-        protected float SecondsElapsed;
 
         #region Public Methods
 
@@ -91,6 +90,8 @@ namespace BroadEngine.Core
         {
             _delayedActions.Add(new DelayedAction(delayInSeconds, action));
         }
+
+        public virtual void HandleInput(Enum input) { }
 
         #endregion
 

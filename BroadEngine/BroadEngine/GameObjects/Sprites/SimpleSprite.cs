@@ -10,17 +10,21 @@ namespace BroadEngine.GameObjects.Sprites
 {
     public class SimpleSprite : GameObject, IDrawable
     {
+        protected float _texWidth;
+        protected float _texHeight;
+
         #region Properties
 
         public Vector2 Position;
         public Vector2 Origin;
         public float Rotation;
         public float Scale;
+        public Color Color;
         public float Alpha;
         public Texture2D Texture { get; protected set; }
         public Vector2 ScaledOrigin { get { return Origin * Scale; } }
-        public float Width { get { return Texture.Width * Scale; } }
-        public float Height { get { return Texture.Height * Scale; } }
+        public float Width { get { return _texWidth * Scale; } }
+        public float Height { get { return _texHeight * Scale; } }
         public Vector2[] Corners
         {
             get
@@ -75,21 +79,31 @@ namespace BroadEngine.GameObjects.Sprites
 
         #region Constructors
 
-        public SimpleSprite(Texture2D texture)
+        public SimpleSprite()
         {
-            Texture = texture;
-            Origin = Texture.Center();
+            _texWidth = 0;
+            _texHeight = 0;
+            Origin = Vector2.Zero;
             Position = Vector2.Zero;
             Rotation = 0;
             Scale = 1;
             Alpha = 1;
         }
 
+        public SimpleSprite(Texture2D texture) : this()
+        {
+            Texture = texture;
+            Origin = Texture.Center();
+            _texHeight = texture.Height;
+            _texWidth = texture.Width;
+        }
+        public SimpleSprite(string textureName) : this(ContentLoader.Get<Texture2D>(textureName)) { }
+
         #endregion
 
         #region Public Methods
 
-        public void Draw(GameTime gameTime, bool isPaused) { Screen.Draw(Texture, Position, Color.White * Alpha, Rotation, Origin, Scale); }
+        public virtual void Draw(GameTime gameTime, bool isPaused) { Screen.Draw(Texture, Position, Color * Alpha, Rotation, Origin, Scale); }
 
         #endregion
     }

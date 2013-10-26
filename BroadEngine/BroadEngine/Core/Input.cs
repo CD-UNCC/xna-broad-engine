@@ -28,18 +28,16 @@ namespace BroadEngine.Core
     {
         Clicked,
         Held,
-        Release,
-        ClickRelease,
-        HoldRelease
+        Released
     }
 
     public static class InputManager
     {
         #region Fields
 
-        static List<string> _inputToCheck = new List<string>();
-        static Dictionary<string, List<Action>> _inputActions = new Dictionary<string, List<Action>>();
-        static Dictionary<string[], List<Action>> _combinedInputActions = new Dictionary<string[], List<Action>>();
+        static List<Enum> _inputToCheck = new List<Enum>();
+        static Dictionary<KeyValuePair<Enum, InputModifier>, Enum> _inputHandlers = new Dictionary<KeyValuePair<Enum, InputModifier>, Enum>();
+        static Dictionary<Enum[], Enum> _combinedInputActions = new Dictionary<Enum[], Enum>();
 
         static MouseState _pastMouse, _lastMouse, _curMouse;
         static KeyboardState _pastKeyboard, _lastKeyboard, _curKeyboard;
@@ -51,19 +49,108 @@ namespace BroadEngine.Core
 
         public static int ScrollValueChange { get { return _curMouse.ScrollWheelValue - _lastMouse.ScrollWheelValue; } }
         public static Vector2 MousePos { get { return new Vector2(_curMouse.X, _curMouse.Y); } }
+        public static InputModifier DefaultInputModifier { get; set; }
+
+        #endregion
+
+        #region Static Constructor
+
+        static InputManager()
+        {
+            DefaultInputModifier = InputModifier.Clicked;
+        }
 
         #endregion
 
         #region Private Methods
 
-        static string AddInputToCheck(Enum input) 
-        {
-            string inputName = GetEnumName(input);
-            if (!_inputToCheck.Contains(inputName))
-                _inputToCheck.Add(inputName);
-            return inputName;
+        static void AddInputToCheck(Enum input) 
+        {            
+            if (!_inputToCheck.Contains(input))
+                _inputToCheck.Add(input);
         }
+        
         static string GetEnumName(Enum input) { return Enum.GetName(input.GetType(), input); }
+
+        static int CompareEnums(Enum a, Enum b)
+        {
+            return GetEnumName(a).CompareTo(GetEnumName(b));
+        }
+        static int CompareKeyedEnums<T>(KeyValuePair<Enum, T> a, KeyValuePair<Enum, T> b)
+        {
+            return CompareEnums(a.Key, b.Key);
+        }
+        static int CompareArrayedKeyLengths<K, V>(KeyValuePair<K[], V> a, KeyValuePair<K[], V> b)
+        {
+            return a.Key.Length.CompareTo(b.Key.Length);
+        }
+
+        static bool IsUsed(Enum input, out InputModifier mod)
+        {
+            mod = InputModifier.Clicked;
+            if (input is Keys)
+            {
+                if (Clicked((Keys)input))
+                    return true;
+                if (Held((Keys)input))
+                {
+                    mod = InputModifier.Held;
+                    return true;
+                }
+                if (Released((Keys)input))
+                {
+                    mod = InputModifier.Released;
+                    return true;
+                }
+                return false;
+            }
+            if (input is MouseButtons)
+            {
+                if (Clicked((MouseButtons)input))
+                    return true;
+                if (Held((MouseButtons)input))
+                {
+                    mod = InputModifier.Held;
+                    return true;
+                }
+                if (Released((MouseButtons)input))
+                {
+                    mod = InputModifier.Released;
+                    return true;
+                }
+                return false;
+            }
+
+            // TODO: Add support for gamepad
+
+            return false;
+        }
+
+        static bool CheckCombinedInput(Enum[] required, List<KeyValuePair<Enum, InputModifier>> usedInputs)
+        {
+            int curInput = 0;
+            List<int> matchedIndexes = new List<int>();
+
+            for (int i = 0; i < required.Length; i++)
+            {
+                if (required.Length > usedInputs.Count - curInput + matchedIndexes.Count)
+                    return false;
+                for (curInput = curInput; curInput < usedInputs.Count; curInput++)
+                    if (GetEnumName(usedInputs[curInput].Key) == GetEnumName(required[i]))
+                    {
+                        matchedIndexes.Add(curInput);
+                        break;
+                    }
+            }
+
+            if (matchedIndexes.Count == required.Length)
+            {
+                for (int i = matchedIndexes.Count - 1; i >= 0; i--)
+                    usedInputs.RemoveAt(matchedIndexes[i]);
+                return true;
+            }
+            return false;
+        }
 
         #endregion
 
@@ -85,42 +172,21 @@ namespace BroadEngine.Core
             _lastKeyboard = _curKeyboard;
             _curKeyboard = Keyboard.GetState();
 
-            List<string> usedInputs = GetUsedInputs().ToList<string>();
-            foreach (string[] inputs in _combinedInputActions.Keys)
+            List<KeyValuePair<Enum, InputModifier>> inputs = GetUsedInputs();
+
+            List<KeyValuePair<Enum[], Enum>> combinedInputs = _combinedInputActions.ToList();
+            combinedInputs.Sort(new Comparison<KeyValuePair<Enum[], Enum>>(CompareArrayedKeyLengths));
+            combinedInputs.Reverse();
+
+            foreach (KeyValuePair<Enum[], Enum> pair in combinedInputs)
+                if (CheckCombinedInput(pair.Key, inputs))
+                    ActivityManager.CurrentActivity.HandleInput(pair.Value);
+
+            foreach (KeyValuePair<Enum, InputModifier> input in inputs)
             {
-                if (usedInputs.Count == 0)
-                    break;
-
-                int curInput = -1;
-                List<int> matchedIndexes = new List<int>();
-                for (int i = 0; i < inputs.Length; i++)
-                {
-                    if (inputs.Length > usedInputs.Count - curInput + matchedIndexes.Count)
-                        break;
-
-                    for (++curInput; curInput < usedInputs.Count; curInput++)
-                        if (usedInputs[curInput] == inputs[i])
-                        {
-                            matchedIndexes.Add(curInput);
-                            break;
-                        }
-                }
-                if (matchedIndexes.Count == inputs.Length)
-                {
-                    for (int i = inputs.Length - 1; i >= 0; i--)
-                        usedInputs.RemoveAt(matchedIndexes[i]);
-                    foreach (Action action in _combinedInputActions[inputs])
-                        action();
-                }
-            }
-
-            string[] moddedInputs = GetModifiedUsedInputs(usedInputs.ToArray());
-            for (int i = 0; i < moddedInputs.Length; i++)
-            {
-                List<Action> actions;
-                if (_inputActions.TryGetValue(moddedInputs[i], out actions))
-                    foreach (Action action in actions)
-                        action();
+                Enum controller;
+                if (_inputHandlers.TryGetValue(input, out controller))
+                    ActivityManager.CurrentActivity.HandleInput(controller);
             }
         }
 
@@ -128,79 +194,54 @@ namespace BroadEngine.Core
 
         #region Public Methods
 
-        public static void AddInput(Action onInput, Enum input, InputModifier mod)
+        public static void AddInput(Enum inputHandler, Enum input, InputModifier mod)
         {
-            string inputName = GetEnumName(mod) + AddInputToCheck(input);
-
-            List<Action> inputActions;
-            if (_inputActions.TryGetValue(inputName, out inputActions))
-                inputActions.Add(onInput);
+            KeyValuePair<Enum, InputModifier> keyV = new KeyValuePair<Enum, InputModifier>(input, mod);
+            if (_inputHandlers.ContainsKey(keyV))
+                throw new ArgumentException("An input with that key and modifier is already specified", "input, mod");
             else
             {
-                inputActions = new List<Action>();
-                inputActions.Add(onInput);
-                _inputActions.Add(inputName, inputActions);
+                AddInputToCheck(input);
+                _inputHandlers.Add(keyV, inputHandler);
             }
         }
-        public static void AddInput(Action onInput, Enum input) { AddInput(onInput, input, InputModifier.Clicked); }
+        public static void AddInput(Enum inputHandler, Enum input) { AddInput(inputHandler, input, DefaultInputModifier); }
 
-        public static void AddCombinedInput(Action onInput, params Enum[] inputs)
+        public static void AddCombinedInput(Enum inputHandler, params Enum[] inputs)
         {
             if (inputs.Length <= 0)
-                throw new InvalidOperationException("Input requires at least one input from Keys, MouseButtons, or ControllerButtons");
+                throw new ArgumentException("Combined inputs require 2 or more inputs to be passed", "inputs");
             if (inputs.Length == 1)
             {
-                AddInput(onInput, inputs[0]);
+                AddInput(inputHandler, inputs[0]);
                 return;
             }
 
-            List<string> inputNames = new List<string>();
-            for (int i = 0; i < inputs.Length; i++) inputNames.Add(AddInputToCheck(inputs[i]));
-            inputNames.Sort();
-
-            string[] sortedNames = inputNames.ToArray();
-            List<Action> inputActions;
-            if (_combinedInputActions.TryGetValue(sortedNames, out inputActions))
-                inputActions.Add(onInput);
-            else
+            List<Enum> keys = new List<Enum>();
+            for (int i = 0; i < inputs.Length; i++)
             {
-                inputActions = new List<Action>();
-                inputActions.Add(onInput);
-                _combinedInputActions.Add(sortedNames, inputActions);
+                AddInputToCheck(inputs[i]);
+                keys.Add(inputs[i]);
             }
+            keys.Sort(new Comparison<Enum>(CompareEnums));
+            _combinedInputActions.Add(keys.ToArray(), inputHandler);
         }
 
-        public static string[] GetUsedInputs()
+        public static List<KeyValuePair<Enum, InputModifier>> GetUsedInputs()
         {
-            List<string> usedInputs = new List<string>();
-            foreach (string toCheck in _inputToCheck)
+            List<KeyValuePair<Enum, InputModifier>> usedInputs = new List<KeyValuePair<Enum, InputModifier>>();
+            foreach (Enum toCheck in _inputToCheck)
             {
-                Keys key;
-                if (Enum.TryParse(toCheck, out key))
-                {
-                    if (_curKeyboard.IsKeyDown(key) || (_curKeyboard.IsKeyDown(key) != _lastKeyboard.IsKeyDown(key)))
-                    {
-                        usedInputs.Add(toCheck);
-                        continue;
-                    }
-                }
-
-                MouseButtons btn;
-                if (Enum.TryParse(toCheck, out btn))
-                {
-                    if (IsButtonDown(btn) || IsButtonUp(btn) != IsButtonUp(btn, _lastMouse))
-                    {
-                        usedInputs.Add(toCheck);
-                        continue;
-                    } 
-                }
-
-                // TODO: Add gamepad support
+                InputModifier mod;
+                if (IsUsed(toCheck, out mod))
+                    usedInputs.Add(new KeyValuePair<Enum, InputModifier>(toCheck, mod));
             }
-            usedInputs.Sort();
-            return usedInputs.ToArray();
+            usedInputs.Sort(new Comparison<KeyValuePair<Enum, InputModifier>>(CompareKeyedEnums));
+
+            return usedInputs;
         }
 
+        /*
         public static string[] GetModifiedUsedInputs(string[] usedInputs)
         {
             List<string> moddedInputs = new List<string>();
@@ -236,6 +277,9 @@ namespace BroadEngine.Core
             return moddedInputs.ToArray();
         }
         public static string[] GetModifiedUsedInputs() { return GetModifiedUsedInputs(GetUsedInputs()); }
+         */
+
+        #region Input States
 
         public static bool Clicked(Keys key)
         {
@@ -289,7 +333,9 @@ namespace BroadEngine.Core
         }
         public static bool IsButtonDown(MouseButtons btn) { return IsButtonDown(btn, _curMouse); }
         static bool IsButtonUp(MouseButtons btn, MouseState stateOn) { return !IsButtonDown(btn, stateOn); }
-        public static bool IsButtonUp(MouseButtons btn) { return IsButtonUp(btn, _lastMouse); }
+        public static bool IsButtonUp(MouseButtons btn) { return IsButtonUp(btn, _curMouse); }
+
+        #endregion
 
         #endregion
     }

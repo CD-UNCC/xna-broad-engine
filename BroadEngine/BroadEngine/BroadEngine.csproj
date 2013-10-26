@@ -103,6 +103,8 @@
     <Compile Include="GameObjects\Modules\IPercentable.cs" />
     <Compile Include="GameObjects\Modules\Timer.cs" />
     <Compile Include="GameObjects\Modules\Transition.cs" />
+    <Compile Include="GameObjects\Sprites\Animation.cs" />
+    <Compile Include="GameObjects\Sprites\LoopingSprite.cs" />
     <Compile Include="GameObjects\Sprites\SimpleSprite.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

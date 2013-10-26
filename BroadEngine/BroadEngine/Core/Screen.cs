@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using BroadEngine.GameObjects.Sprites;
 
 namespace BroadEngine.Core
 {
@@ -61,6 +62,7 @@ namespace BroadEngine.Core
 
         public static GameWindow Window { get { return Game.CurrentGame.Window; } }
 
+        public static Vector2 Center { get { return new Vector2(Width / 2, Height / 2); } }
 
         #endregion
 
@@ -75,6 +77,7 @@ namespace BroadEngine.Core
         public static void ClearScreen() { GraphicsDevice.Clear(ScreenClearColor);  }
 
         public static void DrawString(string text, Vector2 position, Color color) { _spriteBatch.DrawString(Font, text, position, color); }
+        public static void Draw(Animation animation, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float drawLayer) { _spriteBatch.Draw(animation.SourceTexture, position, animation.CurrentSpriteRect, color, rotation, origin, scale, effects, drawLayer); }
         public static void Draw(Texture2D texture, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float drawLayer) { _spriteBatch.Draw(texture, position, null, color, rotation, origin, scale, effects, drawLayer); }
         public static void Draw(Texture2D texture, Vector2 position, Color color, float rotation, Vector2 origin, float scale) { Draw(texture, position, color, rotation, origin, scale, SpriteEffects.None, 0); }
         public static void DrawRect(Rectangle rect, Color color) { _spriteBatch.Draw(Pixel, rect, color); }

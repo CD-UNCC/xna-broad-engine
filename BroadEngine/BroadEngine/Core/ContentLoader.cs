@@ -35,6 +35,7 @@ namespace BroadEngine.Core
 
             Screen.Font = _contentManager.Load<SpriteFont>("Fonts/TestFont");
             _contentTable.Add("TestSprite", _contentManager.Load<Texture2D>("Sprites/testSprite"));
+            _contentTable.Add("TestAnimation", _contentManager.Load<Texture2D>("Animations/testSpriteSheet"));
         }
 
         #endregion
