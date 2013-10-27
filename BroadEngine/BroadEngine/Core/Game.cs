@@ -14,10 +14,12 @@ namespace BroadEngine.Core
     public class Game : Microsoft.Xna.Framework.Game
     {
         internal static Game CurrentGame;
+        string _contentFileName;
 
-        public Game()
+        public Game(string contentFile)
         {
             CurrentGame = this;
+            _contentFileName = contentFile;
             Screen.Graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
         }
@@ -47,7 +49,7 @@ namespace BroadEngine.Core
         /// </summary>
         protected override void LoadContent()
         {
-            ContentLoader.Load(Content);
+            ContentLoader.Load(Content, _contentFileName);
             Screen.Load();
             InputManager.Initialize();
         }

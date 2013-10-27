@@ -9,6 +9,7 @@
 *.suo
 *.user
 *.sln.docstates
+*.csproj.[Dd]ebug.cachefile
 
 # Build results
 

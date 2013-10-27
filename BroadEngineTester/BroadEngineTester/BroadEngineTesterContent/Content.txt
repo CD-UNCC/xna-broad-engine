@@ -1,0 +1,24 @@
+# Generic Format: [Type] [ReferenceName] [FileName]
+# Example:
+# Texture TestSprite Sprites/testSprite
+# Notes:
+# Tabs are automatically removed, so tab away if you wish.
+# It does get saved as \t so keep that in mind
+
+# Folder Initialization
+Set Folder Texture		Sprites
+Set Folder Animation	Animations
+Set Folder Font			Fonts
+
+# Default Initialization
+Set Default Font ScreenFont
+
+# Textures
+Texture		TestSprite		testSprite
+
+# Fonts
+Font		ScreenFont		TestFont
+
+# Animations
+# Animation [Name] [SpriteSheetFile] [NumSprites] [SpriteWidth] [SpriteHeight] [NumCols] [FramesPerSecond]
+Animation	TestAnimation	testSpriteSheet 33 100 100 5 5

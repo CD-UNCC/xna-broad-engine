@@ -12,7 +12,7 @@ namespace BroadEngineTester
         /// </summary>
         static void Main(string[] args)
         {
-            using (Game game = new Game())
+            using (Game game = new Game("Content.txt"))
             {
                 game.Run<ColorScreenActivity>();
             }

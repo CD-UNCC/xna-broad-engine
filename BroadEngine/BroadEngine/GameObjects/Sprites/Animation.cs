@@ -11,23 +11,26 @@ namespace BroadEngine.GameObjects.Sprites
     public class Animation
     {
         int _numSprites;
-        int _spriteWidth;
-        int _spriteHeight;
         int _numCols;
-        int _framesPerSprite;
 
         int _curSprite;
         int _curFrame;
 
-        public Texture2D SourceTexture { get; protected set; }
-        public Rectangle CurrentSpriteRect { get { return new Rectangle(_spriteWidth * (_curSprite % _numCols), _spriteHeight * (_curSprite / _numCols), _spriteWidth, _spriteHeight); } }
+        public int SpriteHeight { get; protected set; }
+        public int SpriteWidth { get; protected set; }
 
-        public Animation(string textureName, int numSprites, int spriteWidth, int spriteHeight, int numCols, int framesPerSprite)
+        int _framesPerSprite;
+        public int FramesPerSprite { get { return _framesPerSprite; }
+            set { _framesPerSprite = value; _framesPerSprite = Helper.ClampValueMin(_framesPerSprite, 1); } }
+        public Texture2D SourceTexture { get; protected set; }
+        public Rectangle CurrentSpriteRect { get { return new Rectangle(SpriteWidth * (_curSprite % _numCols), SpriteHeight * (_curSprite / _numCols), SpriteWidth, SpriteHeight); } }
+
+        public Animation(Texture2D texture, int numSprites, int spriteWidth, int spriteHeight, int numCols, int framesPerSprite)
         {
-            SourceTexture = ContentLoader.Get<Texture2D>(textureName);
+            SourceTexture = texture;
             _numSprites = numSprites;
-            _spriteWidth = spriteWidth;
-            _spriteHeight = spriteHeight;
+            SpriteWidth = spriteWidth;
+            SpriteHeight = spriteHeight;
             _numCols = numCols;
             _framesPerSprite = framesPerSprite;
 
@@ -38,7 +41,7 @@ namespace BroadEngine.GameObjects.Sprites
         public void Update()
         {
             _curFrame++;
-            if (_curFrame == _framesPerSprite)
+            if (_curFrame >= _framesPerSprite)
             {
                 _curFrame = 0;
                 _curSprite++;
@@ -46,5 +49,7 @@ namespace BroadEngine.GameObjects.Sprites
                     _curSprite = 0;
             }
         }
+
+        public Animation Copy() { return new Animation(SourceTexture, _numSprites, SpriteWidth, SpriteHeight, _numCols, _framesPerSprite); }
     }
 }

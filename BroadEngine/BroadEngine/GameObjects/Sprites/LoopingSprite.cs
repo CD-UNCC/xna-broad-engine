@@ -9,22 +9,22 @@ namespace BroadEngine.GameObjects.Sprites
 {
     public class LoopingSprite : SimpleSprite, IUpdateable
     {
-        protected Animation _animation;
+        public Animation Animation { get; protected set; }
 
-        public LoopingSprite(string textureName, int numSprites, int spriteWidth, int spriteHeight, int numCols, int framesPerSprite) : base()
+        public LoopingSprite(string animationName) : base()
         {
-            _animation = new Animation(textureName, numSprites, spriteWidth, spriteHeight, numCols, framesPerSprite);
-            Origin = new Vector2(spriteWidth / 2, spriteHeight / 2);
-            _texHeight = spriteHeight;
-            _texWidth = spriteWidth;
+            Animation = ContentLoader.Get<Animation>(animationName).Copy();
+            Origin = new Vector2(Animation.SpriteWidth / 2, Animation.SpriteHeight / 2);
+            _texHeight = Animation.SpriteHeight;
+            _texWidth = Animation.SpriteWidth;
         }
 
         public void Update(GameTime gameTime, bool isPaused)
         {
             if (!isPaused)
-                _animation.Update();
+                Animation.Update();
         }
 
-        public override void Draw(GameTime gameTime, bool isPaused) { Screen.Draw(_animation, Position, Color, Rotation, Origin, Scale, Microsoft.Xna.Framework.Graphics.SpriteEffects.None, 0); }
+        public override void Draw(GameTime gameTime, bool isPaused) { Screen.Draw(Animation, Position, Color, Rotation, Origin, Scale, Microsoft.Xna.Framework.Graphics.SpriteEffects.None, 0); }
     }
 }

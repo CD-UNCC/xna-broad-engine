@@ -18,7 +18,7 @@ namespace BroadEngineTester.Activities
         int count = 0;
         public override void Load()
         {
-            sprite = new LoopingSprite("TestAnimation", 33, 100, 100, 5, 5);
+            sprite = new LoopingSprite("TestAnimation");
             sprite.Position = Screen.Center;
             sprite.Color = Color.BlueViolet;
             AddObject(sprite);
@@ -34,8 +34,12 @@ namespace BroadEngineTester.Activities
             InputManager.AddInput(ColorControls.Left, Keys.Left, InputModifier.Held);
             InputManager.AddInput(ColorControls.Right, Keys.Right, InputModifier.Held);
             InputManager.AddInput(ColorControls.Down, Keys.Down, InputModifier.Held);
+            InputManager.AddInput(ColorControls.SpeedUp, Keys.W);
+            InputManager.AddInput(ColorControls.SpeedDown, Keys.S);
             InputManager.AddCombinedInput(ColorControls.RotateRight, Keys.Left, Keys.Right);
             InputManager.AddCombinedInput(ColorControls.RotateLeft, Keys.Left, Keys.Right, Keys.RightShift);
+            InputManager.AddCombinedInput(ColorControls.ScaleUp, Keys.Up, Keys.Down);
+            InputManager.AddCombinedInput(ColorControls.ScaleDown, Keys.Up, Keys.Down, Keys.RightShift);
         }
 
         public override void HandleInput(Enum input)
@@ -62,6 +66,18 @@ namespace BroadEngineTester.Activities
                     break;
                 case ColorControls.RotateLeft:
                     sprite.Rotation -= .05f;
+                    break;
+                case ColorControls.ScaleDown:
+                    sprite.Scale -= .05f;
+                    break;
+                case ColorControls.ScaleUp:
+                    sprite.Scale += .05f;
+                    break;
+                case ColorControls.SpeedDown:
+                    sprite.Animation.FramesPerSprite -= 1;
+                    break;
+                case ColorControls.SpeedUp:
+                    sprite.Animation.FramesPerSprite += 1;
                     break;
             }
         }
@@ -111,7 +127,11 @@ namespace BroadEngineTester.Activities
             Down,
             Click,
             RotateRight,
-            RotateLeft
+            RotateLeft,
+            ScaleUp,
+            ScaleDown,
+            SpeedUp,
+            SpeedDown
         }
     }
 }
